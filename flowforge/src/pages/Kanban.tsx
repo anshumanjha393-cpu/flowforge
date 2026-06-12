@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { socket } from "../socket";
+import { useEffect } from "react";
 import {
     DragDropContext,
     Droppable, Draggable
@@ -34,6 +36,27 @@ function Kanban() {
     ])
 
 
+useEffect(() => {
+  socket.on("connect", () => {
+    console.log("Connected:", socket.id);
+  });
+
+  socket.on("taskUpdated", (data) => {
+    console.log("Recieved Update:",data)
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === data.taskId
+          ? { ...task, status: data.status }
+          : task
+      )
+    );
+  });
+
+  return () => {
+    socket.off("connect");
+    socket.off("taskUpdated");
+  };
+}, []);
 
 
 
@@ -106,20 +129,25 @@ function Kanban() {
 
     //dragDrop
 
-    const onDragEnd = (result: any) => {
-        if (!result.destination) return;
+const onDragEnd = (result: any) => {
+  if (!result.destination) return;
 
-        const taskId = result.draggableId;
-        const newStatus = result.destination.droppableId;
+  const taskId = result.draggableId;
+  const newStatus = result.destination.droppableId;
 
-        setTasks(
-            tasks.map((task) =>
-                task.id === taskId
-                    ? { ...task, status: newStatus }
-                    : task
-            )
-        );
-    };
+  setTasks(
+    tasks.map((task) =>
+      task.id === taskId
+        ? { ...task, status: newStatus }
+        : task
+    )
+  );
+
+  socket.emit("taskMoved", {
+    taskId,
+    status: newStatus
+  });
+};
     return (
         <DragDropContext onDragEnd={onDragEnd}>
 
