@@ -1,1 +1,77 @@
+@import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap");
 @import "tailwindcss";
+
+/* Tailwind v4: enable `dark:` variant when an ancestor has the .dark class */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* FlowForge design tokens — light mode */
+  --color-surface: #fbf8ff;
+  --color-surface-dim: #dad9e3;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f4f2fc;
+  --color-surface-container: #eeedf7;
+  --color-surface-container-high: #e8e7f1;
+  --color-on-surface: #1a1b22;
+  --color-on-surface-variant: #444653;
+  --color-outline: #757684;
+  --color-outline-variant: #c4c5d5;
+  --color-primary: #00288e;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #dde1ff;
+  --color-on-primary-container: #001453;
+  --color-background: #f8fafc;
+}
+
+.dark {
+  /* Dark mode equivalents, same hierarchy */
+  --color-surface: #0f1117;
+  --color-surface-dim: #0b0d12;
+  --color-surface-container-lowest: #0b0d12;
+  --color-surface-container-low: #15171f;
+  --color-surface-container: #1a1c26;
+  --color-surface-container-high: #21232f;
+  --color-on-surface: #f1f0fa;
+  --color-on-surface-variant: #a8aab8;
+  --color-outline: #41434f;
+  --color-outline-variant: #2a2c38;
+  --color-primary: #b8c4ff;
+  --color-on-primary: #001453;
+  --color-primary-container: #1e40af;
+  --color-on-primary-container: #dde1ff;
+  --color-background: #0b0d12;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
+}
+
+.font-display {
+  font-family: "Hanken Grotesk", sans-serif;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
