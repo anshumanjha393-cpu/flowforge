@@ -1,12 +1,14 @@
 import type { Request, Response } from "express";
 import { prisma } from "../config/prisma.js";
 import { logger } from "../config/logger.js";
+import { uploadToSupabase, supabase } from "../config/supabase.js";
 import path from "path";
 import fs from "fs";
 
 const UPLOAD_DIR = path.resolve("uploads");
+const isProd = process.env.NODE_ENV === "production";
 
-if (!fs.existsSync(UPLOAD_DIR)) {
+if (!isProd && !fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
@@ -21,14 +23,26 @@ export const uploadAttachment = async (req: Request, res: Response) => {
 
     const task = await prisma.task.findUnique({ where: { id: taskId } });
     if (!task) {
-      // Remove uploaded file if task doesn't exist
-      fs.unlinkSync(req.file.path);
+      if (!isProd && req.file.path) fs.unlinkSync(req.file.path);
       return res.status(404).json({ error: "Task not found" });
+    }
+
+    // In production: upload buffer to Supabase
+    // In development: use local disk path
+    let fileUrl: string;
+    let storedFilename: string;
+
+    if (isProd) {
+      fileUrl = await uploadToSupabase(req.file);
+      storedFilename = fileUrl; // store full URL as filename in prod
+    } else {
+      fileUrl = `/uploads/${req.file.filename}`;
+      storedFilename = req.file.filename;
     }
 
     const attachment = await prisma.attachment.create({
       data: {
-        filename: req.file.filename,
+        filename: storedFilename,
         originalName: req.file.originalname,
         mimeType: req.file.mimetype,
         size: req.file.size,
@@ -44,7 +58,8 @@ export const uploadAttachment = async (req: Request, res: Response) => {
 
     const userEmail = req.user?.email || "unknown@flowforge.com";
     const userName = userEmail.split("@")[0] || "unknown";
-    const capitalizedUser = userName.charAt(0).toUpperCase() + userName.slice(1);
+    const capitalizedUser =
+      userName.charAt(0).toUpperCase() + userName.slice(1);
 
     await prisma.activity.create({
       data: {
@@ -56,7 +71,7 @@ export const uploadAttachment = async (req: Request, res: Response) => {
     });
 
     logger.info(`File uploaded: ${req.file.originalname} to task ${taskId}`);
-    res.status(201).json(attachment);
+    res.status(201).json({ ...attachment, fileUrl });
   } catch (err) {
     logger.error("[uploadAttachment]", err);
     res.status(500).json({ error: "Failed to upload file" });
@@ -77,7 +92,15 @@ export const getAttachments = async (req: Request, res: Response) => {
       orderBy: { createdAt: "desc" },
     });
 
-    res.json(attachments);
+    // Attach public URL for each file
+    const withUrls = attachments.map((a) => ({
+      ...a,
+      fileUrl: isProd
+        ? a.filename // already a full Supabase URL in prod
+        : `/uploads/${a.filename}`,
+    }));
+
+    res.json(withUrls);
   } catch (err) {
     logger.error("[getAttachments]", err);
     res.status(500).json({ error: "Failed to fetch attachments" });
@@ -94,6 +117,11 @@ export const downloadAttachment = async (req: Request, res: Response) => {
 
     if (!attachment) {
       return res.status(404).json({ error: "Attachment not found" });
+    }
+
+    if (isProd) {
+      // In production redirect to the Supabase public URL
+      return res.redirect(attachment.filename);
     }
 
     const filePath = path.join(UPLOAD_DIR, attachment.filename);
@@ -120,10 +148,13 @@ export const deleteAttachment = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Attachment not found" });
     }
 
-    // Delete file from disk
-    const filePath = path.join(UPLOAD_DIR, attachment.filename);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    if (isProd) {
+      // Extract filename from full Supabase URL and delete from bucket
+      const fileName = attachment.filename.split("/").pop()!;
+      await supabase.storage.from("attachments").remove([fileName]);
+    } else {
+      const filePath = path.join(UPLOAD_DIR, attachment.filename);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
 
     await prisma.attachment.delete({ where: { id: attachmentId } });
