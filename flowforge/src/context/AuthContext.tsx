@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem(USER_KEY);
     return stored ? JSON.parse(stored) : null;
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !!localStorage.getItem(AUTH_KEY));
 
   const persistSession = (data: AuthResponse) => {
     localStorage.setItem(AUTH_KEY, data.token);
@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    let active = true;
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     if (token) {
@@ -47,30 +48,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       api
         .get<{ user: User; token: string }>("/auth/me")
         .then((res) => {
+          if (!active) return;
           setUser(res.data.user);
           localStorage.setItem(AUTH_KEY, res.data.token);
           localStorage.setItem(USER_KEY, JSON.stringify(res.data.user));
         })
-        .catch(() => logout())
-        .finally(() => setLoading(false));
-      return;
+        .catch(() => { if (active) logout(); })
+        .finally(() => { if (active) setLoading(false); });
+      return () => { active = false; };
     }
 
     const storedToken = localStorage.getItem(AUTH_KEY);
     if (!storedToken) {
-      setLoading(false);
-      return;
+      return () => { active = false; };
     }
 
     api
       .get<{ user: User; token: string }>("/auth/me")
       .then((res) => {
+        if (!active) return;
         setUser(res.data.user);
         localStorage.setItem(AUTH_KEY, res.data.token);
         localStorage.setItem(USER_KEY, JSON.stringify(res.data.user));
       })
-      .catch(() => logout())
-      .finally(() => setLoading(false));
+      .catch(() => { if (active) logout(); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, [logout]);
 
   const login = async (payload: LoginPayload) => {
@@ -91,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");

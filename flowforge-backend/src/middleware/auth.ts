@@ -8,21 +8,17 @@ export interface AuthPayload {
   role: "ADMIN" | "MANAGER" | "MEMBER";
 }
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: AuthPayload;
-    }
+// Extend Express Request to include our user type
+declare module "express-serve-static-core" {
+  interface Request {
+    user?: AuthPayload;
   }
 }
 
 // In-memory fallbacks when Redis is not available
 const memoryFailedAttempts = new Map<string, { count: number; resetTime: number }>();
-const memoryBlockedIps = new Map<string, number>(); // IP -> Block reset timestamp
+const memoryBlockedIps = new Map<string, number>();
 
-/**
- * Check if an IP is blocked due to excessive failed login attempts.
- */
 export const isIpBlocked = async (ip: string): Promise<boolean> => {
   if (isRedisAvailable && redis) {
     try {
@@ -38,16 +34,11 @@ export const isIpBlocked = async (ip: string): Promise<boolean> => {
     if (Date.now() < blockResetTime) {
       return true;
     }
-    // Block expired, remove it
     memoryBlockedIps.delete(ip);
   }
   return false;
 };
 
-/**
- * Record a failed login attempt for an IP.
- * If 5 failed attempts occur within 15 minutes, block the IP for 30 minutes.
- */
 export const recordFailedAttempt = async (ip: string): Promise<void> => {
   if (isRedisAvailable && redis) {
     try {
@@ -57,14 +48,12 @@ export const recordFailedAttempt = async (ip: string): Promise<void> => {
       attempts += 1;
 
       if (attempts >= 5) {
-        // Block IP for 30 minutes (1800 seconds)
         await redis.set(`block:${ip}`, "blocked", "EX", 1800);
-        await redis.del(failKey); // Clear attempts
+        await redis.del(failKey);
         console.warn(`IP ${ip} blocked for 30 minutes due to 5 failed logins`);
       } else {
-        // Increment attempts with TTL of 15 minutes (900 seconds)
         if (attempts === 1) {
-          await redis.set(failKey, 1, "EX", 900);
+          await redis.set(failKey, "1", "EX", 900);
         } else {
           await redis.incr(failKey);
         }
@@ -75,7 +64,6 @@ export const recordFailedAttempt = async (ip: string): Promise<void> => {
     }
   }
 
-  // Memory fallback
   const now = Date.now();
   let attempt = memoryFailedAttempts.get(ip);
   if (!attempt || now > attempt.resetTime) {
@@ -84,7 +72,7 @@ export const recordFailedAttempt = async (ip: string): Promise<void> => {
   attempt.count += 1;
 
   if (attempt.count >= 5) {
-    memoryBlockedIps.set(ip, now + 30 * 60 * 1000); // Block for 30 minutes
+    memoryBlockedIps.set(ip, now + 30 * 60 * 1000);
     memoryFailedAttempts.delete(ip);
     console.warn(`IP ${ip} blocked (memory) for 30 minutes due to 5 failed logins`);
   } else {
@@ -92,9 +80,6 @@ export const recordFailedAttempt = async (ip: string): Promise<void> => {
   }
 };
 
-/**
- * Clear failed attempts for an IP (call on successful login).
- */
 export const clearFailedAttempts = async (ip: string): Promise<void> => {
   if (isRedisAvailable && redis) {
     try {
@@ -127,12 +112,10 @@ export const authenticate = (
   // 1. Check Session Cookie First
   // @ts-ignore
   if (req.session && req.session.user) {
-    // Check if IP address changed drastically (different from login IP) for session hijacking protection
     // @ts-ignore
     const loginIp = req.session.loginIp;
     if (loginIp && loginIp !== req.ip) {
       console.warn(`Session IP mismatch: loginIp=${loginIp}, currentIp=${req.ip}`);
-      // Destroy session and force login
       req.session.destroy(() => {
         res.clearCookie("connect.sid");
         return res.status(401).json({

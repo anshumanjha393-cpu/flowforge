@@ -8,14 +8,17 @@ datasource db {
 }
 
 enum Role {
+  OWNER
   ADMIN
   MANAGER
   MEMBER
+  GUEST
 }
 
 enum TaskStatus {
   TODO
   IN_PROGRESS
+  IN_REVIEW
   DONE
 }
 
@@ -23,6 +26,7 @@ enum Priority {
   LOW
   MEDIUM
   HIGH
+  CRITICAL
 }
 
 enum UserStatus {
@@ -30,48 +34,240 @@ enum UserStatus {
   INVITED
 }
 
+enum SprintStatus {
+  PLANNING
+  ACTIVE
+  COMPLETED
+}
+
+enum BoardShareRole {
+  VIEWER
+  EDITOR
+}
+
 model User {
-  id        String     @id @default(uuid())
-  email     String     @unique
-  name      String?
-  password  String?
-  googleId  String?    @unique
-  githubId  String?    @unique
-  role      Role       @default(MEMBER)
-  status    UserStatus @default(ACTIVE)
-  createdAt DateTime   @default(now())
-  tasks     Task[]     @relation("AssignedTasks")
+  id             String          @id @default(uuid())
+  email          String          @unique
+  name           String?
+  password       String?
+  googleId       String?         @unique
+  githubId       String?         @unique
+  role           Role            @default(MEMBER)
+  status         UserStatus      @default(ACTIVE)
+  createdAt      DateTime        @default(now())
+  tasks          Task[]          @relation("AssignedTasks")
+  comments       Comment[]
+  attachments    Attachment[]
+  timeEntries    TimeEntry[]
+  workspaceMembers WorkspaceMember[]
+  ownedWorkspaces Workspace[]    @relation("WorkspaceOwner")
+  webhooks       Webhook[]
+  boardShares    BoardShare[]
+  notifications  Notification[]
+  auditLogs      AuditLog[]
+}
+
+model Workspace {
+  id          String            @id @default(uuid())
+  name        String
+  slug        String            @unique
+  description String?
+  ownerId     String
+  owner       User              @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  createdAt   DateTime          @default(now())
+  projects    Project[]
+  sprints     Sprint[]
+  milestones  Milestone[]
+  members     WorkspaceMember[]
+  webhooks    Webhook[]
+  boardShares BoardShare[]
+}
+
+model WorkspaceMember {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  role        Role      @default(MEMBER)
+  joinedAt    DateTime  @default(now())
+
+  @@unique([userId, workspaceId])
 }
 
 model Project {
   id          String    @id @default(uuid())
-  name        String    @unique
+  name        String
   description String?
   priority    Priority  @default(MEDIUM)
-  status      String    @default("IN_PROGRESS") // "TODO", "IN_PROGRESS", "DONE"
-  progress    Int       @default(0) // 0 to 100
+  status      String    @default("IN_PROGRESS")
+  progress    Int       @default(0)
   dueDate     DateTime?
   createdAt   DateTime  @default(now())
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
   tasks       Task[]
+  sprints     Sprint[]
+  milestones  Milestone[]
 }
 
 model Task {
-  id         String     @id @default(uuid())
-  title      String
-  priority   Priority   @default(MEDIUM)
-  projectId  String?
-  project    Project?   @relation(fields: [projectId], references: [id])
-  createdAt  DateTime   @default(now())
-  assigneeId String?
-  assignee   User?      @relation("AssignedTasks", fields: [assigneeId], references: [id])
-  status     TaskStatus @default(TODO)
+  id          String      @id @default(uuid())
+  title       String
+  description String?
+  priority    Priority    @default(MEDIUM)
+  projectId   String?
+  project     Project?    @relation(fields: [projectId], references: [id])
+  createdAt   DateTime    @default(now())
+  dueDate     DateTime?
+  startDate   DateTime?
+  estimatedHours Float?
+  assigneeId  String?
+  assignee    User?       @relation("AssignedTasks", fields: [assigneeId], references: [id])
+  status      TaskStatus  @default(TODO)
+  sprintId    String?
+  sprint      Sprint?     @relation(fields: [sprintId], references: [id])
+  milestoneId String?
+  milestone   Milestone?  @relation(fields: [milestoneId], references: [id])
+  comments    Comment[]
+  attachments Attachment[]
+  timeEntries TimeEntry[]
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Attachment {
+  id           String   @id @default(uuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
 }
 
 model Activity {
   id        String   @id @default(uuid())
   userId    String
   userEmail String
-  action    String   // CREATED, MOVED, DELETED
+  action    String
   details   String
   timestamp DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  taskId    String?
+  createdAt DateTime @default(now())
+}
+
+model Sprint {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  status      SprintStatus @default(PLANNING)
+  goal        String?
+  projectId   String?
+  project     Project?     @relation(fields: [projectId], references: [id])
+  workspaceId String?
+  workspace   Workspace?   @relation(fields: [workspaceId], references: [id])
+  createdAt   DateTime     @default(now())
+  tasks       Task[]
+}
+
+model Milestone {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  dueDate     DateTime?
+  status      String    @default("OPEN")
+  projectId   String?
+  project     Project?  @relation(fields: [projectId], references: [id])
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+  createdAt   DateTime  @default(now())
+  tasks       Task[]
+}
+
+model TimeEntry {
+  id          String   @id @default(uuid())
+  description String?
+  hours       Float
+  date        DateTime @default(now())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model Webhook {
+  id          String   @id @default(uuid())
+  name        String
+  url         String
+  secret      String?
+  events      String[]
+  isActive    Boolean  @default(true)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+  createdAt   DateTime @default(now())
+  logs        WebhookLog[]
+}
+
+model WebhookLog {
+  id        String   @id @default(uuid())
+  webhookId String
+  webhook   Webhook  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  event     String
+  payload   Json
+  status    Int?
+  response  String?
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  entity    String
+  entityId  String?
+  oldValues Json?
+  newValues Json?
+  ip        String?
+  createdAt DateTime @default(now())
+}
+
+model BoardShare {
+  id          String          @id @default(uuid())
+  projectId   String
+  token       String          @unique
+  role        BoardShareRole  @default(VIEWER)
+  userId      String?
+  user        User?           @relation(fields: [userId], references: [id])
+  workspaceId String?
+  workspace   Workspace?      @relation(fields: [workspaceId], references: [id])
+  expiresAt   DateTime?
+  createdAt   DateTime        @default(now())
 }

@@ -1,0 +1,371 @@
+========================================
+  FLOWFORGE - HOW TO USE GUIDE
+========================================
+
+FlowForge is an enterprise project management and task tracking platform.
+This guide explains every feature and how to use it effectively.
+
+
+----------------------------------------
+1. GETTING STARTED
+----------------------------------------
+
+SIGNING UP:
+  - Go to the Register page
+  - Enter your email and password
+  - You can also sign up with Google or GitHub OAuth
+
+LOGGING IN:
+  - Go to the Login page
+  - Enter your credentials
+  - Or click "Sign in with Google" / "Sign in with GitHub"
+
+FORGOT PASSWORD:
+  - Click "Forgot Password?" on the login page
+  - Enter your email to receive a reset link
+
+
+----------------------------------------
+2. DASHBOARD
+----------------------------------------
+
+The Dashboard is your home screen after login.
+
+  - OVERVIEW TAB:
+    * Shows active projects with progress bars
+    * Productivity banner with completion stats
+    * "My Tasks" section with checkboxes to mark tasks done
+    * Recent Activity feed showing what your team has been doing
+
+  - ANALYTICS TAB:
+    * Total Tasks, Todo, In Progress, Completed counts
+    * Task Completion pie chart
+    * Priority Breakdown bar chart (High, Medium, Low)
+
+  - Use the search bar at the top to filter projects and tasks
+  - Click "Manage Team" to go to Team Members
+
+
+----------------------------------------
+3. KANBAN BOARD
+----------------------------------------
+
+The Kanban board is where you manage tasks visually.
+
+  COLUMNS:
+    * TODO - Tasks not yet started
+    * IN PROGRESS - Tasks currently being worked on
+    * DONE - Completed tasks
+
+  HOW TO USE:
+    * Drag and drop tasks between columns to change their status
+    * Click the checkmark icon on a task card to quick-mark it as DONE
+    * Click "New Task" to create a task (opens a modal with title, priority, assignee, project)
+    * Click a task card to open the Task Detail Modal
+    * Click the trash icon to delete a task
+
+  FILTERS:
+    * Click "Filter" to open filter options
+    * Filter by Priority: All, High, Medium, Low
+    * Filter by Status: All, Todo, In Progress, Done
+    * Filters combine - you can filter by both priority and status at once
+    * Click "Clear Filters" to reset
+
+
+----------------------------------------
+4. TASK DETAIL MODAL
+----------------------------------------
+
+Click any task on the Kanban board to open its details.
+
+  - View task title, description, status, priority
+  - Change status and priority from the modal
+  - Add comments in the Comments section
+  - Upload files in the Attachments section
+  - View task activity history
+
+
+----------------------------------------
+5. PROJECTS
+----------------------------------------
+
+  VIEWING PROJECTS:
+    * Click "Projects" in the sidebar
+    * See all projects as cards with name, description, priority, and progress
+
+  CREATING A PROJECT:
+    * Click "New Project" button
+    * Fill in name, description, priority, due date
+    * Click "Create"
+
+  PROJECT DETAIL:
+    * Click a project card to see its detail page
+    * View all tasks associated with the project
+    * Track progress percentage
+
+
+----------------------------------------
+6. WORKSPACES
+----------------------------------------
+
+Workspaces help organize projects and team members.
+
+  VIEWING WORKSPACES:
+    * Click "Workspaces" in the sidebar
+    * See all workspaces you belong to
+
+  CREATING A WORKSPACE:
+    * Click "Create Workspace"
+    * Enter a name and optional description
+
+  WORKSPACE DETAIL:
+    * Click a workspace to view its projects and members
+    * Add or remove members
+    * Change member roles (Admin, Manager, Member)
+
+
+----------------------------------------
+7. SPRINTS
+----------------------------------------
+
+Sprints let you plan work in time-boxed iterations.
+
+  VIEWING SPRINTS:
+    * Click "Sprints" in the sidebar
+    * Filter by status: All, Planning, Active, Completed
+
+  CREATING A SPRINT:
+    * Click "New Sprint"
+    * Enter name, description, start date, end date
+    * Optionally set a goal and link to a project
+
+  MANAGING A SPRINT:
+    * Click a sprint to view its details
+    * Click "Start Sprint" to begin working on it (status changes to ACTIVE)
+    * Click "Complete Sprint" when the sprint is done (status changes to COMPLETED)
+    * View tasks associated with the sprint
+
+
+----------------------------------------
+8. TIME TRACKING
+----------------------------------------
+
+Log and track time spent on tasks.
+
+  VIEWING TIME ENTRIES:
+    * Click "Time Tracking" in the sidebar
+    * See a weekly bar chart of hours logged
+    * View total hours for the week
+    * See a table of all time entries with date, task, hours, and description
+
+  LOGGING TIME:
+    * Click "Log Time" button
+    * Select a task, enter hours, date, and optional description
+    * Click "Save"
+
+  EDITING / DELETING:
+    * Click the edit icon on a time entry to modify it
+    * Click the delete icon to remove it
+
+
+----------------------------------------
+9. TEAM MEMBERS
+----------------------------------------
+
+Manage your team and their roles.
+
+  VIEWING MEMBERS:
+    * Click "Team" in the sidebar
+    * See all team members with their email, role, and status
+
+  SEARCHING AND FILTERING:
+    * Use the search bar to find members by email
+    * Filter by Role: All, Admin, Manager, Member
+    * Filter by Status: All, Active, Invited
+
+  INVITING MEMBERS:
+    * Click "Invite Member" (Admin only)
+    * Enter the email and select a role
+    * Click "Send Invite"
+
+  VIEWING MEMBER DETAILS:
+    * Click a member row to see their profile
+    * View their assigned tasks and task count
+    * Change their role (Admin only)
+
+
+----------------------------------------
+10. ACTIVITY FEED
+----------------------------------------
+
+See a real-time stream of all actions across your projects.
+
+  * View activities like task creation, status changes, comments, uploads
+  * Filter by action type: All, Created, Moved, Completed, Commented, Uploaded
+  * Search activities by content
+  * Each activity shows who did what and when
+
+
+----------------------------------------
+11. AUDIT LOGS
+----------------------------------------
+
+Admin-level audit trail of all system actions.
+
+  * View all user actions (Admin only)
+  * Filter by entity type: Task, Project, User, Comment
+  * Search by user email or action details
+  * Paginated results
+
+
+----------------------------------------
+12. WEBHOOKS
+----------------------------------------
+
+Set up automated notifications when events happen.
+
+  CREATING A WEBHOOK:
+    * Click "Webhooks" in the sidebar
+    * Click "New Webhook"
+    * Enter a name and the URL to receive notifications
+    * Select which events to subscribe to (task.created, task.moved, etc.)
+
+  MANAGING WEBHOOKS:
+    * Toggle webhooks active/inactive
+    * View delivery logs (success/failure, response status)
+    * Test a webhook by sending a test payload
+    * Delete webhooks you no longer need
+
+
+----------------------------------------
+13. BOARD SHARING
+----------------------------------------
+
+Share your project board with external users.
+
+  CREATING A SHARE LINK:
+    * Go to a project detail page
+    * Click "Share"
+    * Choose a role for the viewer (Viewer or Editor)
+    * Optionally set an expiry date
+    * Click "Create Link"
+
+  MANAGING SHARE LINKS:
+    * View all active share links
+    * Copy link to clipboard
+    * Revoke access by deleting a link
+
+  ACCESSING SHARED BOARDS:
+    * Open the share link URL
+    * No login required for public shared boards
+    * View project tasks in read-only mode (or edit if given Editor role)
+
+
+----------------------------------------
+14. NOTIFICATIONS
+----------------------------------------
+
+Stay updated with in-app notifications.
+
+  * Click the bell icon in the header to open the notification dropdown
+  * See unread notifications (e.g., task assignments)
+  * Click "Mark all as read" to clear unread badges
+  * Notifications are created automatically when you are assigned a task
+
+
+----------------------------------------
+15. SETTINGS
+----------------------------------------
+
+Manage your personal profile.
+
+  * Click your name in the sidebar to go to Settings
+  * Update your display name
+  * Changes are saved immediately
+
+
+----------------------------------------
+16. DARK MODE
+----------------------------------------
+
+FlowForge supports light and dark themes.
+
+  * Toggle dark mode using the sun/moon icon in the header
+  * Your preference is saved and persists across sessions
+  * The app also respects your system preference by default
+
+
+----------------------------------------
+17. ROLES AND PERMISSIONS
+----------------------------------------
+
+FlowForge has three roles with different access levels:
+
+  ADMIN:
+    - Full access to everything
+    - Can invite/remove members
+    - Can change member roles
+    - Can delete tasks
+    - Can view audit logs
+
+  MANAGER:
+    - Can create/edit/delete projects and tasks
+    - Can manage sprints
+    - Can move any task on the Kanban board
+    - Can manage webhooks and board sharing
+
+  MEMBER:
+    - Can view projects and tasks
+    - Can move tasks on the Kanban board
+    - Can comment on tasks and upload attachments
+    - Can log time entries
+    - Can only update tasks assigned to themselves (limited admin overrides)
+
+  PUBLIC (no login):
+    - Can view shared boards via public link (read-only)
+
+
+----------------------------------------
+18. KEYBOARD TIPS
+----------------------------------------
+
+  * Use the search bar at the top of most pages to filter results
+  * Press Escape to close modals
+  * Click outside a modal or dropdown to dismiss it
+
+
+----------------------------------------
+19. REAL-TIME FEATURES
+----------------------------------------
+
+FlowForge uses Socket.IO for live updates:
+
+  * Task moves on the Kanban board are reflected instantly for all users
+  * New comments appear without refreshing
+  * Activity feed updates in real time
+  * Dashboard stats refresh automatically
+
+
+----------------------------------------
+TROUBLESHOOTING
+----------------------------------------
+
+  "Failed to load" errors:
+    - Make sure the backend server is running (npm run dev in flowforge-backend)
+    - Check that PostgreSQL and Redis are running
+
+  403 Forbidden errors:
+    - You may not have permission for this action
+    - Check your role (Admin, Manager, Member) in Team Members
+
+  Tasks not appearing:
+    - Check if you have active filters on the Kanban board
+    - Verify the task has a project assigned if filtering by project
+
+  Socket not connecting:
+    - Ensure the backend WebSocket server is running
+    - Check your browser console for connection errors
+
+========================================
+  END OF HOW TO USE GUIDE
+========================================

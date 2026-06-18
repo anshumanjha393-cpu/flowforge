@@ -21,6 +21,8 @@ passport.deserializeUser(async (id: string, done) => {
   }
 });
 
+const backendUrl = process.env.BACKEND_URL || "http://localhost:5001";
+
 // Configure Google OAuth Strategy
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -31,7 +33,7 @@ if (googleClientId && googleClientSecret) {
       {
         clientID: googleClientId,
         clientSecret: googleClientSecret,
-        callbackURL: "http://localhost:5001/api/auth/google/callback",
+        callbackURL: `${backendUrl}/api/auth/google/callback`,
         scope: ["profile", "email"],
       },
       async (accessToken, refreshToken, profile, done) => {
@@ -44,7 +46,6 @@ if (googleClientId && googleClientSecret) {
           let user = await prisma.user.findUnique({ where: { email } });
 
           if (!user) {
-            // Create a new user if it doesn't exist
             user = await prisma.user.create({
               data: {
                 email,
@@ -52,11 +53,10 @@ if (googleClientId && googleClientSecret) {
                 googleId: profile.id,
                 status: "ACTIVE",
                 role: "MEMBER",
-                password: "", // No password for OAuth users
+                password: "",
               },
             });
           } else if (!user.googleId) {
-            // Link existing user account if email matches but Google ID isn't set
             user = await prisma.user.update({
               where: { email },
               data: { googleId: profile.id },
@@ -84,17 +84,14 @@ if (githubClientId && githubClientSecret) {
       {
         clientID: githubClientId,
         clientSecret: githubClientSecret,
-        callbackURL: "http://localhost:5001/api/auth/github/callback",
+        callbackURL: `${backendUrl}/api/auth/github/callback`,
         scope: ["user:email"],
       },
       async (accessToken: string, refreshToken: string, profile: any, done: any) => {
         try {
-          // GitHub profiles can have null or private emails in profile.emails.
-          // In some cases, we need to request them or use a fallback.
           let email = profile.emails?.[0]?.value;
 
           if (!email) {
-            // Fetch user emails from GitHub API directly if not provided in profile
             try {
               const res = await fetch("https://api.github.com/user/emails", {
                 headers: { Authorization: `token ${accessToken}` },
@@ -110,7 +107,6 @@ if (githubClientId && githubClientSecret) {
           }
 
           if (!email) {
-            // Fallback unique email using github username/id if we still can't find one
             email = `${profile.username || profile.id}@github.flowforge.local`;
           }
 
@@ -124,7 +120,7 @@ if (githubClientId && githubClientSecret) {
                 githubId: profile.id,
                 status: "ACTIVE",
                 role: "MEMBER",
-                password: "", // No password for OAuth users
+                password: "",
               },
             });
           } else if (!user.githubId) {

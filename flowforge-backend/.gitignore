@@ -1,5 +1,38 @@
-node_modules
-# Keep environment variables out of version control
-.env
+# Dependencies
+node_modules/
 
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Compiled output
+dist/
+build/
+src/**/*.js
+src/**/*.js.map
+src/**/*.d.ts
+src/**/*.d.ts.map
+
+# Prisma generated + compiled seed
 /src/generated/prisma
+prisma/seed.js
+prisma/seed.js.map
+prisma/seed.d.ts
+prisma/seed.d.ts.map
+
+# Vitest compiled
+vitest.config.js
+vitest.config.js.map
+
+# Logs
+logs/
+*.log
+server.log
+
+# Uploads (ephemeral in prod)
+uploads/
+
+# OS
+.DS_Store
+Thumbs.db

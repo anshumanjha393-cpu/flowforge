@@ -1,0 +1,50 @@
+YOU MUST DO BEFORE DEPLOYING
+1. Generate strong secrets (CRITICAL)
+# Run these to generate secure random strings:
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+Use the first output for JWT_SECRET, the second for SESSION_SECRET. Never use the defaults.
+2. Create a production .env file or set environment variables
+For your hosting platform (Vercel, Railway, Render, AWS, etc.), set these environment variables:
+Backend:
+- DATABASE_URL - Your production PostgreSQL connection string
+- JWT_SECRET - Strong random string (from step 1)
+- SESSION_SECRET - Strong random string (from step 1)
+- FRONTEND_URL - Your actual frontend URL (e.g., https://yourapp.vercel.app)
+- BACKEND_URL - Your actual backend URL (e.g., https://yourapi.railway.app)
+- REDIS_URL - Your production Redis URL (or omit if not using Redis)
+- PORT - Usually auto-set by the hosting platform
+Frontend (build-time):
+- VITE_API_URL - Your production backend URL (e.g., https://yourapi.railway.app)
+3. Set up production database
+cd flowforge-backend
+npx prisma migrate deploy
+npx prisma db seed
+4. Configure OAuth redirect URIs
+Update your Google and GitHub OAuth apps:
+- Google: Add https://yourbackend.url/api/auth/google/callback to authorized redirect URIs
+- GitHub: Add https://yourbackend.url/api/auth/github/callback to callback URL
+5. Clean up untracked files before committing
+# Remove compiled JS files that were accidentally generated
+git rm -r --cached flowforge-backend/src/**/*.js flowforge-backend/src/**/*.d.ts flowforge-backend/src/**/*.d.ts.map 2>/dev/null
+git rm -r --cached flowforge-backend/logs/ flowforge-backend/server.log 2>/dev/null
+6. CORS must match your frontend URL exactly
+The FRONTEND_URL env var is used for CORS. It must exactly match your frontend's deployed URL (including https://), otherwise API requests will be blocked by CORS.
+7. Session cookies require HTTPS
+The session config uses secure: true in production. Your backend must be behind HTTPS (most hosting platforms handle this automatically).
+8. File uploads need storage
+The multer config uploads to a local uploads/ directory. In production with ephemeral containers (Heroku, Railway, Vercel), uploaded files will be lost on restart. Consider using S3, Cloudflare R2, or similar for persistent storage.
+# Todos
+[✓] Run ESLint on frontend
+[✓] Run TypeScript check on frontend
+[✓] Run TypeScript check on backend
+[✓] Check backend build compiles
+[✓] Fix docker-compose.yml - parameterize all credentials
+[✓] Fix backend server.ts - use BACKEND_URL in logs
+[✓] Fix .gitignore - add .env, compiled JS, logs
+[✓] Fix frontend Dockerfile - accept VITE_API_URL build arg
+[✓] List items user must handle before deploying
++ Thought: 10ms
+Summary: I fixed 5 deployment issues (docker-compose hardcoded values, server logs, .gitignore gaps, Dockerfile build args). There are 8 items you must handle manually before deploying — the most critical are generating strong JWT_SECRET/SESSION_SECRET, setting your production FRONTEND_URL/BACKEND_URL environment variables, and updating OAuth redirect URIs. The codebase itself (lint, TypeScript, build) is clean with zero errors.
+▣  Build · MiMo V2.5 Free · 5m 7s
+Build·MiMo V2.5 Free

@@ -5,10 +5,24 @@ const prisma = new PrismaClient();
 
 async function main() {
   console.log("Cleaning database...");
-  await prisma.activity.deleteMany({});
-  await prisma.task.deleteMany({});
-  await prisma.project.deleteMany({});
-  await prisma.user.deleteMany({});
+  // Clean in dependency order: children first, parents last
+// Clean in dependency order: children first, parents last
+await prisma.webhookLog.deleteMany({});
+await prisma.webhook.deleteMany({});
+await prisma.auditLog.deleteMany({});
+await prisma.notification.deleteMany({});
+await prisma.boardShare.deleteMany({});
+await prisma.timeEntry.deleteMany({});
+await prisma.milestone.deleteMany({});
+await prisma.sprint.deleteMany({});
+await prisma.attachment.deleteMany({});
+await prisma.comment.deleteMany({});
+await prisma.activity.deleteMany({});
+await prisma.task.deleteMany({});
+await prisma.project.deleteMany({});
+await prisma.workspaceMember.deleteMany({});
+await prisma.workspace.deleteMany({});
+await prisma.user.deleteMany({});            // user last
 
   console.log("Seeding users...");
   const hashedPassword = await bcrypt.hash("password", 10);

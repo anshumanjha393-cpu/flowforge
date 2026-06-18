@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
-import type { Role, TeamMember, TeamMemberDetail } from "../types";
+import type { Role, TeamMember, TeamMemberDetail, PaginatedResponse } from "../types";
 
 const ROLE_LABELS: Record<Role, string> = {
   ADMIN: "Admin",
@@ -9,7 +9,7 @@ const ROLE_LABELS: Record<Role, string> = {
   MEMBER: "Member",
 };
 
-export default function TeamMembers({ searchQuery }: { searchQuery: string }) {
+export default function TeamMembers({ searchQuery = "" }: { searchQuery?: string }) {
   const { user } = useAuth();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,17 +32,17 @@ export default function TeamMembers({ searchQuery }: { searchQuery: string }) {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
 
-  const fetchMembers = useCallback(() => {
-    setLoading(true);
+  useEffect(() => {
+    let active = true;
     const params: Record<string, string> = {};
     if (searchQuery.trim()) params.q = searchQuery.trim();
     if (roleFilter !== "ALL") params.role = roleFilter;
 
     api
-      .get<TeamMember[]>("/users", { params })
+      .get<PaginatedResponse<TeamMember>>("/users", { params })
       .then((res) => {
-        // Apply status filter locally if any
-        let filtered = res.data;
+        if (!active) return;
+        let filtered = res.data.data;
         if (statusFilter !== "ALL") {
           filtered = filtered.filter((m) => m.status === statusFilter);
         }
@@ -50,27 +50,22 @@ export default function TeamMembers({ searchQuery }: { searchQuery: string }) {
         setError(null);
       })
       .catch(() => {
-        setError("Couldn't load team members. Is the backend running?");
+        if (active) setError("Couldn't load team members. Is the backend running?");
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, [searchQuery, roleFilter, statusFilter]);
 
   useEffect(() => {
-    fetchMembers();
-  }, [fetchMembers]);
+    if (!selectedId) return;
 
-  useEffect(() => {
-    if (!selectedId) {
-      setDetail(null);
-      return;
-    }
-
-    setDetailLoading(true);
+    let active = true;
     api
       .get<TeamMemberDetail>(`/users/${selectedId}`)
-      .then((res) => setDetail(res.data))
-      .catch(() => setDetail(null))
-      .finally(() => setDetailLoading(false));
+      .then((res) => { if (active) setDetail(res.data); })
+      .catch(() => { if (active) setDetail(null); })
+      .finally(() => { if (active) setDetailLoading(false); });
+    return () => { active = false; };
   }, [selectedId]);
 
   const handleRoleChange = (newRole: Role) => {
@@ -106,9 +101,9 @@ export default function TeamMembers({ searchQuery }: { searchQuery: string }) {
       setInviteEmail("");
       setInviteRole("MEMBER");
       setShowInviteModal(false);
-      fetchMembers();
-    } catch (err: any) {
-      setInviteError(err.response?.data?.message ?? "Failed to invite member");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to invite member";
+      setInviteError(message);
     } finally {
       setInviteLoading(false);
     }
@@ -247,7 +242,7 @@ export default function TeamMembers({ searchQuery }: { searchQuery: string }) {
 
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
+            onChange={(e) => setStatusFilter(e.target.value as "ALL" | "ACTIVE" | "INVITED")}
             className="rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-3 py-1.5 text-xs font-semibold outline-none focus:border-[#00288e] dark:border-[#2a2c38] dark:bg-[#0f1117]"
           >
             <option value="ALL">All Status</option>

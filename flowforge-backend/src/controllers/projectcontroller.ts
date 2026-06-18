@@ -1,25 +1,45 @@
 import type { Request, Response } from "express";
 import { prisma } from "../config/prisma.js";
+import { logger } from "../config/logger.js";
 
 export const getProjects = async (req: Request, res: Response) => {
   try {
-    const projects = await prisma.project.findMany({
-      include: {
-        tasks: {
-          select: {
-            id: true,
-            status: true,
+    const { page = "1", limit = "50", search } = req.query;
+    const pageNum = Math.max(1, parseInt(page as string, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit as string, 10) || 50));
+    const skip = (pageNum - 1) * limitNum;
+
+    const where: Record<string, unknown> = {};
+
+    if (search && typeof search === "string") {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const [projects, total] = await Promise.all([
+      prisma.project.findMany({
+        where,
+        include: {
+          tasks: {
+            select: {
+              id: true,
+              status: true,
+            },
           },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limitNum,
+      }),
+      prisma.project.count({ where }),
+    ]);
 
-    // Dynamically calculate progress for each project based on tasks if needed
     const projectsWithProgress = projects.map((project) => {
       const totalTasks = project.tasks.length;
       if (totalTasks === 0) {
-        return { ...project, progress: project.progress }; // fallback to seeded progress
+        return { ...project, progress: project.progress };
       }
       const doneTasks = project.tasks.filter((t) => t.status === "DONE").length;
       const progress = Math.round((doneTasks / totalTasks) * 100);
@@ -29,9 +49,17 @@ export const getProjects = async (req: Request, res: Response) => {
       };
     });
 
-    res.json(projectsWithProgress);
+    res.json({
+      data: projectsWithProgress,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+      },
+    });
   } catch (err) {
-    console.error("[getProjects]", err);
+    logger.error("[getProjects]", err);
     res.status(500).json({ error: "Failed to fetch projects" });
   }
 };
@@ -40,12 +68,7 @@ export const createProject = async (req: Request, res: Response) => {
   try {
     const { name, description, priority, dueDate } = req.body;
 
-    if (!name || typeof name !== "string" || !name.trim()) {
-      res.status(400).json({ error: "Project name is required" });
-      return;
-    }
-
-    const existing = await prisma.project.findUnique({
+    const existing = await prisma.project.findFirst({
       where: { name: name.trim() },
     });
 
@@ -65,7 +88,6 @@ export const createProject = async (req: Request, res: Response) => {
       },
     });
 
-    // Create an activity log
     const userEmail = req.user?.email || "unknown@flowforge.com";
     await prisma.activity.create({
       data: {
@@ -76,9 +98,10 @@ export const createProject = async (req: Request, res: Response) => {
       },
     });
 
+    logger.info(`Project created: ${project.name} by ${userEmail}`);
     res.status(201).json(project);
   } catch (err) {
-    console.error("[createProject]", err);
+    logger.error("[createProject]", err);
     res.status(500).json({ error: "Failed to create project" });
   }
 };

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE = "http://localhost:5001/api";
+const API_BASE = `${import.meta.env.VITE_API_URL || "http://localhost:5001"}/api`;
 
 export const api = axios.create({
   baseURL: API_BASE,
@@ -17,3 +17,4 @@ api.interceptors.request.use((config) => {
 
 export const AUTH_KEY = "token";
 export const USER_KEY = "user";
+export default api;

@@ -1,7 +1,26 @@
 ﻿node_modules/
 .env
+.env.local
+.env.*.local
 dist/
+coverage/
+logs/
+*.log
+
 **/node_modules/
 **/.env
+**/.env.local
+**/.env.*.local
 **/dist/
+**/coverage/
+**/logs/
+**/*.log
 **/src/generated/prisma
+
+# Backend compiled output
+flowforge-backend/src/**/*.js
+flowforge-backend/src/**/*.d.ts
+flowforge-backend/src/**/*.d.ts.map
+flowforge-backend/vitest.config.js
+flowforge-backend/vitest.config.d.ts
+flowforge-backend/vitest.config.d.ts.map

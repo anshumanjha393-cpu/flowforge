@@ -3,6 +3,7 @@ import { prisma } from "../config/prisma.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { recordFailedAttempt, clearFailedAttempts } from "../middleware/auth.js";
+import { logger } from "../config/logger.js";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -18,7 +19,6 @@ export const register = async (req: Request, res: Response) => {
       select: { id: true, email: true, role: true, createdAt: true },
     });
 
-    // Automatically log in the user (establish session)
     // @ts-ignore
     req.session.user = {
       userId: user.id,
@@ -40,11 +40,13 @@ export const register = async (req: Request, res: Response) => {
       }
     );
 
+    logger.info(`New user registered: ${email}`);
     res.status(201).json({
       user,
       token,
     });
   } catch (error) {
+    logger.error("Registration error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -56,6 +58,7 @@ export const login = async (req: Request, res: Response) => {
 
     if (!user) {
       await recordFailedAttempt(req.ip || "unknown");
+      logger.warn(`Failed login attempt for ${email} from ${req.ip}`);
       return res.status(400).json({ message: "Invalid Credentials" });
     }
 
@@ -67,13 +70,12 @@ export const login = async (req: Request, res: Response) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       await recordFailedAttempt(req.ip || "unknown");
+      logger.warn(`Failed login attempt for ${email} from ${req.ip}`);
       return res.status(400).json({ message: "Invalid Credentials" });
     }
 
-    // Clear failed attempts count on success
     await clearFailedAttempts(req.ip || "unknown");
 
-    // Establish Session
     // @ts-ignore
     req.session.user = {
       userId: user.id,
@@ -83,13 +85,12 @@ export const login = async (req: Request, res: Response) => {
     // @ts-ignore
     req.session.loginIp = req.ip;
 
-    // Adjust session duration based on "Remember Me"
     if (rememberMe === false) {
       // @ts-ignore
-      req.session.cookie.maxAge = undefined; // Expires when browser closes
+      req.session.cookie.maxAge = undefined;
     } else {
       // @ts-ignore
-      req.session.cookie.maxAge = 21 * 24 * 60 * 60 * 1000; // 21 days
+      req.session.cookie.maxAge = 21 * 24 * 60 * 60 * 1000;
     }
 
     const token = jwt.sign(
@@ -104,6 +105,7 @@ export const login = async (req: Request, res: Response) => {
       }
     );
 
+    logger.info(`User logged in: ${email}`);
     res.json({
       token,
       user: {
@@ -113,6 +115,7 @@ export const login = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    logger.error("Login error:", error);
     res.status(500).json({
       message: "Server Error",
     });
@@ -131,7 +134,6 @@ export const me = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Generate/refresh token to return to the client
     const token = jwt.sign(
       {
         userId: user.id,
@@ -149,6 +151,7 @@ export const me = async (req: Request, res: Response) => {
       token,
     });
   } catch (error) {
+    logger.error("Get me error:", error);
     res.status(500).json({ message: "Server Error" });
   }
 };
@@ -162,6 +165,7 @@ export const logout = async (req: Request, res: Response) => {
         return res.status(500).json({ message: "Could not log out" });
       }
       res.clearCookie("connect.sid");
+      logger.info("User logged out");
       return res.json({ message: "Logged out successfully" });
     });
   } else {
@@ -172,19 +176,6 @@ export const logout = async (req: Request, res: Response) => {
 export const oauthSuccess = async (req: Request, res: Response) => {
   if (req.user) {
     const user = req.user as any;
-    
-    // @ts-ignore
-    req.session.user = {
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-    };
-    // @ts-ignore
-    req.session.loginIp = req.ip;
-    
-    // OAuth session is 21 days by default
-    // @ts-ignore
-    req.session.cookie.maxAge = 21 * 24 * 60 * 60 * 1000;
 
     const token = jwt.sign(
       {
@@ -198,12 +189,11 @@ export const oauthSuccess = async (req: Request, res: Response) => {
       }
     );
 
-    // Save session before redirect
-    // @ts-ignore
-    req.session.save(() => {
-      res.redirect(`http://localhost:5173/dashboard?token=${token}`);
-    });
+    logger.info(`OAuth login: ${user.email}`);
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    res.redirect(`${frontendUrl}/dashboard?token=${token}`);
   } else {
-    res.redirect("http://localhost:5173/login?error=OAuthFailed");
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    res.redirect(`${frontendUrl}/login?error=OAuthFailed`);
   }
 };

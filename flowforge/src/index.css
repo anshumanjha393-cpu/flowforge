@@ -1,11 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
-/* Tailwind v4: enable `dark:` variant when an ancestor has the .dark class */
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* FlowForge design tokens — light mode */
   --color-surface: #fbf8ff;
   --color-surface-dim: #dad9e3;
   --color-surface-container-lowest: #ffffff;
@@ -24,7 +22,6 @@
 }
 
 .dark {
-  /* Dark mode equivalents, same hierarchy */
   --color-surface: #0f1117;
   --color-surface-dim: #0b0d12;
   --color-surface-container-lowest: #0b0d12;
@@ -46,32 +43,136 @@ body {
   font-family: "Inter", sans-serif;
   background-color: var(--color-background);
   color: var(--color-on-surface);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .font-display {
   font-family: "Hanken Grotesk", sans-serif;
 }
 
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus ring styles */
+:focus-visible {
+  outline: 2px solid #00288e;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.dark :focus-visible {
+  outline-color: #b8c4ff;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c4c5d5;
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #2a2c38;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #757684;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #41434f;
+}
+
+/* Animations */
 @keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.2s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
+/* Selection color */
+::selection {
+  background-color: #dde1ff;
+  color: #001453;
+}
+
+.dark ::selection {
+  background-color: #1e40af;
+  color: #dde1ff;
+}
+
+/* Placeholder styles */
+::placeholder {
+  opacity: 0.6;
+}
+
+/* Transitions for interactive elements */
+button, a, input, select, textarea {
+  transition: all 0.15s ease;
+}
+
+/* Line clamp utility */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
