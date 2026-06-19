@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 interface RegisterProps {
@@ -7,6 +8,7 @@ interface RegisterProps {
 
 export default function Register({ onSwitchToLogin }: RegisterProps) {
   const { register } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -33,6 +35,9 @@ export default function Register({ onSwitchToLogin }: RegisterProps) {
     setError(null);
 
     register({ email: email.trim(), password })
+      .then(() => {
+        navigate("/dashboard", { replace: true });
+      })
       .catch((err) => {
         const message = err.response?.data?.message ?? "Couldn't create account. Try again.";
         setError(message);

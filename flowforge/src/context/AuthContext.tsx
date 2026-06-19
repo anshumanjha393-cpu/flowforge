@@ -6,6 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import { api, AUTH_KEY, USER_KEY } from "../api/client";
 import type { AuthResponse, LoginPayload, RegisterPayload, User } from "../types";
 
@@ -20,6 +21,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(() => {
     const stored = localStorage.getItem(USER_KEY);
     return stored ? JSON.parse(stored) : null;
@@ -52,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(res.data.user);
           localStorage.setItem(AUTH_KEY, res.data.token);
           localStorage.setItem(USER_KEY, JSON.stringify(res.data.user));
+          navigate("/dashboard", { replace: true });
         })
         .catch(() => { if (active) logout(); })
         .finally(() => { if (active) setLoading(false); });
@@ -70,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(res.data.user);
         localStorage.setItem(AUTH_KEY, res.data.token);
         localStorage.setItem(USER_KEY, JSON.stringify(res.data.user));
+        navigate("/dashboard", { replace: true });
       })
       .catch(() => { if (active) logout(); })
       .finally(() => { if (active) setLoading(false); });

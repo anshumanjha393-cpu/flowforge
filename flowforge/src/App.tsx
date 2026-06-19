@@ -23,8 +23,8 @@ import BoardSharePublic from "./pages/BoardSharePublic";
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login onSwitchToRegister={() => window.location.href = "/register"} onSwitchToForgotPassword={() => window.location.href = "/forgot-password"} />} />
           <Route path="/register" element={<Register onSwitchToLogin={() => window.location.href = "/login"} />} />
@@ -49,7 +49,7 @@ export default function App() {
             <Route path="/board-shares/:projectId" element={<BoardShareManage />} />
           </Route>
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

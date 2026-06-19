@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 interface LoginProps {
@@ -8,6 +9,7 @@ interface LoginProps {
 
 export default function Login({ onSwitchToRegister, onSwitchToForgotPassword }: LoginProps) {
   const { login } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
@@ -26,6 +28,9 @@ export default function Login({ onSwitchToRegister, onSwitchToForgotPassword }: 
     setError(null);
 
     login({ email: email.trim(), password, rememberMe })
+      .then(() => {
+        navigate("/dashboard", { replace: true });
+      })
       .catch((err) => {
         const message =
           err.response?.data?.message ?? "Couldn't sign in. Please try again.";

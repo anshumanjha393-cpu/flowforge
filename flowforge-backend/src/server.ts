@@ -28,16 +28,20 @@ import swaggerUi from "swagger-ui-express";
 import { prisma } from "./config/prisma.js";
 import path from "path";
 
+dotenv.config();
+
+import "./config/passport.js";
+
 process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT EXCEPTION:", err);
   logger.error("CRASH:", err.message, err.stack);
 });
 
 process.on("unhandledRejection", (reason: unknown) => {
+  console.error("UNHANDLED REJECTION:", reason);
   const err = reason as Error;
   logger.error("UNHANDLED REJECTION:", err?.message ?? reason);
 });
-
-dotenv.config();
 
 const app = express();
 
