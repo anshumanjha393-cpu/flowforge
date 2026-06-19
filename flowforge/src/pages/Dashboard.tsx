@@ -131,7 +131,7 @@ export default function Dashboard({ searchQuery = "" }: DashboardProps) {
 
   function getActivityIcon(action: string) {
     const s = { CREATED: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400", MOVED: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400", COMPLETED: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400", COMMENTED: "bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400", UPLOADED: "bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400", INVITED: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400", DELETED: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400" }[action] || "bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400";
-    const icons: Record<string, JSX.Element> = {
+    const icons: Record<string, React.ReactElement> = {
       CREATED: <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>,
       MOVED: <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
       COMPLETED: <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>,
