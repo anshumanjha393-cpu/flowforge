@@ -1,5 +1,7 @@
-import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
+
+import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import passport from "passport";
@@ -27,8 +29,6 @@ import { swaggerSpec } from "./config/swagger.js";
 import swaggerUi from "swagger-ui-express";
 import { prisma } from "./config/prisma.js";
 import path from "path";
-
-dotenv.config();
 
 import "./config/passport.js";
 
