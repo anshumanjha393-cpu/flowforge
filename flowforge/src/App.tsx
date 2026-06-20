@@ -20,6 +20,10 @@ import Webhooks from "./pages/Webhooks";
 import AuditLogs from "./pages/AuditLogs";
 import BoardShareManage from "./pages/BoardShareManage";
 import BoardSharePublic from "./pages/BoardSharePublic";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import CookieConsent from "./components/CookieConsent";
+
 
 export default function App() {
   return (
@@ -30,6 +34,8 @@ export default function App() {
           <Route path="/register" element={<Register onSwitchToLogin={() => window.location.href = "/login"} />} />
           <Route path="/forgot-password" element={<ForgotPassword onBackToLogin={() => window.location.href = "/login"} />} />
           <Route path="/share/:token" element={<BoardSharePublic />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
 
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -49,6 +55,7 @@ export default function App() {
             <Route path="/board-shares/:projectId" element={<BoardShareManage />} />
           </Route>
         </Routes>
+        <CookieConsent />
       </AuthProvider>
     </BrowserRouter>
   );

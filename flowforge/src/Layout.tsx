@@ -3,6 +3,8 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { api } from "./api/client";
 import NotificationsDropdown from "./components/NotificationsDropdown";
+import HelpSupportModal from "./components/HelpSupportModal";
+
 
 type NavId = "dashboard" | "board" | "projects" | "team" | "activities" | "settings" | "workspaces" | "sprints" | "time-tracking" | "webhooks" | "audit-logs";
 
@@ -140,6 +142,7 @@ export default function Layout() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [helpModalOpen, setHelpModalOpen] = useState(false);
 
   useEffect(() => {
     if (darkMode) {
@@ -281,7 +284,7 @@ export default function Layout() {
 
           <div className="flex items-center gap-2">
             <NotificationsDropdown />
-            <button className="flex h-10 w-10 items-center justify-center rounded-full text-[#757684] transition-colors hover:bg-[#f1f5f9] hover:text-[#1a1b22] dark:text-[#a8aab8] dark:hover:bg-[#1a1c26] dark:hover:text-white">
+            <button onClick={() => setHelpModalOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-full text-[#757684] transition-colors hover:bg-[#f1f5f9] hover:text-[#1a1b22] dark:text-[#a8aab8] dark:hover:bg-[#1a1c26] dark:hover:text-white">
               <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.8" />
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -346,6 +349,7 @@ export default function Layout() {
           <Outlet context={{ searchQuery }} />
         </main>
       </div>
+      <HelpSupportModal isOpen={helpModalOpen} onClose={() => setHelpModalOpen(false)} />
     </div>
   );
 }

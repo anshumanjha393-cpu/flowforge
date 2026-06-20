@@ -65,6 +65,8 @@ model User {
   boardShares    BoardShare[]
   notifications  Notification[]
   auditLogs      AuditLog[]
+  supportTickets SupportTicket[]
+  bugReports     BugReport[]
 }
 
 model Workspace {
@@ -271,3 +273,28 @@ model BoardShare {
   expiresAt   DateTime?
   createdAt   DateTime        @default(now())
 }
+
+model SupportTicket {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  email     String
+  subject   String
+  message   String
+  status    String   @default("OPEN")
+  createdAt DateTime @default(now())
+}
+
+model BugReport {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  email       String
+  title       String
+  steps       String
+  severity    String   @default("MEDIUM")
+  description String
+  status      String   @default("OPEN")
+  createdAt   DateTime @default(now())
+}
+

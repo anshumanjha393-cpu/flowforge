@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 interface RegisterProps {
@@ -114,8 +114,8 @@ export default function Register({ onSwitchToLogin }: RegisterProps) {
 
       <footer className="flex flex-col items-center justify-between gap-2 border-t border-[#e4e6eb] px-8 py-6 text-xs text-[#757684] sm:flex-row dark:border-[#2a2c38] dark:text-[#a8aab8]">
         <div className="flex gap-4">
-          <a href="#privacy" onClick={(e) => e.preventDefault()} className="hover:underline">Privacy Policy</a>
-          <a href="#terms" onClick={(e) => e.preventDefault()} className="hover:underline">Terms of Service</a>
+          <Link to="/privacy" className="hover:underline">Privacy Policy</Link>
+          <Link to="/terms" className="hover:underline">Terms of Service</Link>
         </div>
         <p>&copy; 2024 FlowForge Inc. All rights reserved.</p>
       </footer>
